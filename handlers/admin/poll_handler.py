@@ -63,6 +63,7 @@ async def poll_send(message: types.Message, state: FSMContext):
         "message_id": sent.message_id,
         "chat_id": message.chat.id,
         "users": [],
-        "text": key
+        "text": key,
+        "status": "open"
     }
 
