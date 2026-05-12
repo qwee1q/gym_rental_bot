@@ -1,19 +1,28 @@
-from aiogram.filters import CommandObject, CommandStart
-from aiogram.types import Message
-from aiogram import Router,types
+from aiogram.filters import Command
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram import Router,types,F
+
+from request.user_request import post_participant
 
 private = Router()
 
-@private.message(CommandStart(deep_link=True))
-async def start(message: types.Message, command: CommandObject):
-    args = command.args
+@private.message(Command('register'))
+async def start(message: types.Message):
+    await message.answer("Send your phone number",reply_markup=ReplyKeyboardMarkup(keyboard=[
+        [KeyboardButton(text="Send phone number", request_contact=True)],
+    ],resize_keyboard=True))
 
-    group_id, message_id = args.split('_')
+@private.message(F.contact)
+async def contact(message: types.Message):
+    phone_number = message.contact.phone_number
+    user_id = message.contact.user_id
+    username = message.from_user.username
+    name = message.contact.first_name
 
-    group_id = int(group_id)
-    message_id = int(message_id)
+    response = await post_participant(phone_number, user_id, username,name)
 
-    chat_id = message.chat.id
-    await message.answer(f"Your payload is {args}, chat_id is {chat_id}")
-    await message.bot.edit_message_text(chat_id=group_id, message_id=message_id,text=f'Connected: {chat_id}')
+    await message.answer(f"ID: {response['data']['id']}\n"
+                         f"Name: {response['data']['name']}\n"
+                         f"Phone Number: {response['data']['phone']}\n")
+    print(response)
 

@@ -4,6 +4,8 @@ from aiogram.filters import Command
 import os
 from dotenv import load_dotenv, find_dotenv
 
+from request.voting_request import voting_post
+
 load_dotenv(find_dotenv())
 
 from aiogram.fsm.context import FSMContext
@@ -73,3 +75,18 @@ async def period_duration(message: types.Message, state: FSMContext):
             "users": [],
         }
     }
+
+    request_data = {
+        "question": f'{data["start_date"]} {data["end_date"]}',
+        "start_date": data['start_date'],
+        "end_date": data['end_date'],
+        "is_active": 1,
+        "voting_type": "multiple_choice",
+        "related_class": "game_period",
+        "status": "open",
+        "duration": data['duration'],
+    }
+
+    response = await voting_post(request_data)
+
+    print(response)

@@ -4,6 +4,8 @@ from aiogram.filters import Command
 import os
 from dotenv import load_dotenv, find_dotenv
 
+from request.voting_options_request import voting_options_post
+
 load_dotenv(find_dotenv())
 
 from aiogram.fsm.context import FSMContext
@@ -14,6 +16,8 @@ from keyboard.poll_keyboard import keyboard
 
 from handlers.storage import Storage
 
+from request.voting_request import voting_post
+
 import uuid
 
 group_id = os.getenv('GROUP_ID')
@@ -23,23 +27,23 @@ poll = Router()
 
 @poll.message(Command("poll"))
 async def poll_cmd(message: types.Message, state: FSMContext):
-    await message.answer("Enter date of poll")
-    await state.set_state(PollFSM.date)
+    await message.answer("Enter start date of poll")
+    await state.set_state(PollFSM.start_date)
 
 @poll.message(Command("poll_close"))
 async def poll_close_cmd(message: types.Message):
     await message.answer("Closing poll")
     # ще не зробив
 
-@poll.message(PollFSM.date)
+@poll.message(PollFSM.start_date)
 async def poll_day(message: types.Message, state: FSMContext):
-    await state.update_data(date=message.text)
-    await message.answer("Enter date of poll")
-    await state.set_state(PollFSM.day)
+    await state.update_data(start_date=message.text)
+    await message.answer("Enter end date of poll")
+    await state.set_state(PollFSM.end_date)
 
-@poll.message(PollFSM.day)
+@poll.message(PollFSM.end_date)
 async def poll_type(message: types.Message, state: FSMContext):
-    await state.update_data(day=message.text)
+    await state.update_data(end_date=message.text)
     await message.answer("Enter type of poll")
     await state.set_state(PollFSM.type)
 
@@ -54,10 +58,10 @@ async def poll_send(message: types.Message, state: FSMContext):
     await message.answer("Poll was sent")
 
     sent = await message.bot.send_message(group_id,
-                                   f"{data['date']} {data['day']} {data['type']}\n\nConnected: ",
+                                   f"{data['start_date']} {data['end_date']} {data['type']}\n\nConnected: ",
                                    message_thread_id=thread_id,reply_markup=keyboard(poll_id))
 
-    key = f'{data["date"]} {data["day"]} {data["type"]}'
+    key = f'{data["start_date"]} {data["end_date"]} {data["type"]}'
 
     Storage.polls[poll_id] = {
         "message_id": sent.message_id,
@@ -67,3 +71,25 @@ async def poll_send(message: types.Message, state: FSMContext):
         "status": "open"
     }
 
+    request_data = {
+        "question": key,
+        "start_date": data['start_date'],
+        "end_date": data['end_date'],
+        "is_active": 1,
+        "voting_type": "single_choice",
+        "related_class": "schedule",
+        "status": "open"
+    }
+
+    response = await voting_post(request_data)
+
+    print(response)
+
+    option_request_data = {
+        'voting_id': response['data']['id'],
+        'options': ['+booking','+free place', '-']
+    }
+
+    option_response = await voting_options_post(option_request_data)
+
+    print(option_response)
