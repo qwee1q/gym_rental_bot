@@ -46,10 +46,26 @@ async def period_duration(message: types.Message, state: FSMContext):
     data = await state.get_data()
     await message.answer("Period was created")
 
-    period_id = str(uuid.uuid4())
+    await state.clear()
+
+    request_data = {
+        "question": f'{data["start_date"]} {data["end_date"]}',
+        "start_date": data['start_date'],
+        "end_date": data['end_date'],
+        "is_active": 1,
+        "voting_type": "multiple_choice",
+        "related_class": "game_period",
+        "status": "open",
+        "duration": data['duration'],
+    }
+
+    response = await voting_post(request_data)
+
+    period_id = str(response["game_period"]["data"]["id"])
+
 
     sent = await message.bot.send_message(group_id,
-                                          f"{data['start_date']} - {data['end_date']}",
+                                          f"ID: {period_id}\n{data['start_date']} - {data['end_date']}",
                                           message_thread_id=thread_id, reply_markup=keyboard_period(period_id))
 
     Storage.period[period_id] = {
@@ -75,18 +91,4 @@ async def period_duration(message: types.Message, state: FSMContext):
             "users": [],
         }
     }
-
-    request_data = {
-        "question": f'{data["start_date"]} {data["end_date"]}',
-        "start_date": data['start_date'],
-        "end_date": data['end_date'],
-        "is_active": 1,
-        "voting_type": "multiple_choice",
-        "related_class": "game_period",
-        "status": "open",
-        "duration": data['duration'],
-    }
-
-    response = await voting_post(request_data)
-
     print(response)

@@ -5,6 +5,8 @@ from handlers.storage import Storage
 from keyboard.poll_keyboard import keyboard
 from keyboard.period_keyboard import keyboard_period
 
+from request.vote_request import poll_post
+
 group = Router()
 
 @group.callback_query(F.data.startswith("connect:"))
@@ -71,6 +73,7 @@ async def monday_query(query: types.CallbackQuery):
         friday_users = "\n".join([f"{i + 1}. {u}" for i, u in enumerate(period["friday"]["users"])])
 
         period["text"] = (
+            f"ID: {period_id}"
             f"{period['start_date']} - {period['end_date']}\n\n"
             f"{period['monday']['text']} {monday_users}\n\n"
             f"{period['tuesday']['text']} {tuesday_users}\n\n"
@@ -104,6 +107,7 @@ async def tuesday_query(query: types.CallbackQuery):
         friday_users = "\n".join([f"{i + 1}. {u}" for i, u in enumerate(period["friday"]["users"])])
 
         period["text"] = (
+            f"ID: {period_id}"
             f"{period['start_date']} - {period['end_date']}\n\n"
             f"{period['monday']['text']} {monday_users}\n\n"
             f"{period['tuesday']['text']} {tuesday_users}\n\n"
@@ -137,6 +141,7 @@ async def thursday_query(query: types.CallbackQuery):
         friday_users = "\n".join([f"{i + 1}. {u}" for i, u in enumerate(period["friday"]["users"])])
 
         period["text"] = (
+            f"ID: {period_id}"
             f"{period['start_date']} - {period['end_date']}\n\n"
             f"{period['monday']['text']} {monday_users}\n\n"
             f"{period['tuesday']['text']} {tuesday_users}\n\n"
@@ -170,6 +175,7 @@ async def friday_query(query: types.CallbackQuery):
         friday_users = "\n".join([f"{i + 1}. {u}" for i, u in enumerate(period["friday"]["users"])])
 
         period["text"] = (
+            f"ID: {period_id}"
             f"{period['start_date']} - {period['end_date']}\n\n"
             f"{period['monday']['text']} {monday_users}\n\n"
             f"{period['tuesday']['text']} {tuesday_users}\n\n"

@@ -1,6 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 def keyboard_period(period_id):
+    print(period_id)
     return InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(

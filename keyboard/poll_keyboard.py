@@ -7,6 +7,7 @@ load_dotenv(find_dotenv())
 group_id = os.environ.get("GROUP_ID")
 
 def keyboard(poll_id):
+    print(poll_id)
     return InlineKeyboardMarkup(
     inline_keyboard=[
         [

@@ -30,11 +30,6 @@ async def poll_cmd(message: types.Message, state: FSMContext):
     await message.answer("Enter start date of poll")
     await state.set_state(PollFSM.start_date)
 
-@poll.message(Command("poll_close"))
-async def poll_close_cmd(message: types.Message):
-    await message.answer("Closing poll")
-    # ще не зробив
-
 @poll.message(PollFSM.start_date)
 async def poll_day(message: types.Message, state: FSMContext):
     await state.update_data(start_date=message.text)
@@ -53,23 +48,9 @@ async def poll_send(message: types.Message, state: FSMContext):
     data = await state.get_data()
     await state.clear()
 
-    poll_id = str(uuid.uuid4())
-
     await message.answer("Poll was sent")
 
-    sent = await message.bot.send_message(group_id,
-                                   f"{data['start_date']} {data['end_date']} {data['type']}\n\nConnected: ",
-                                   message_thread_id=thread_id,reply_markup=keyboard(poll_id))
-
     key = f'{data["start_date"]} {data["end_date"]} {data["type"]}'
-
-    Storage.polls[poll_id] = {
-        "message_id": sent.message_id,
-        "chat_id": message.chat.id,
-        "users": [],
-        "text": key,
-        "status": "open"
-    }
 
     request_data = {
         "question": key,
@@ -85,11 +66,26 @@ async def poll_send(message: types.Message, state: FSMContext):
 
     print(response)
 
+    poll_id = str(response["data"]["id"])
+
+    Storage.polls[poll_id] = {
+        "chat_id": message.chat.id,
+        "users": [],
+        "text": f'ID: {poll_id}\n{key}',
+        "status": "open",
+        "id": poll_id
+    }
+
+    await message.bot.send_message(group_id,
+                                          f"ID: {poll_id}\n{data['start_date']} {data['end_date']} {data['type']}\n\nConnected: ",
+                                          message_thread_id=thread_id, reply_markup=keyboard(poll_id))
+
     option_request_data = {
         'voting_id': response['data']['id'],
         'options': ['+booking','+free place', '-']
     }
 
     option_response = await voting_options_post(option_request_data)
+
 
     print(option_response)

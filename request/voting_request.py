@@ -34,3 +34,6 @@ async def voting_post(data):
             async with session.post(url, params=params) as resp:
                 response_data = await resp.json()
                 return response_data
+
+async def voting_get(data: dict):
+    pass
